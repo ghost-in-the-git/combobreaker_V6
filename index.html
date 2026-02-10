@@ -1377,13 +1377,14 @@
                 game.player.level = data.player.level || 1;
                 game.player.xp = data.player.xp || 0;
                 game.player.xpToLevel = data.player.xpToLevel || 10;
-                game.player.baseMaxHp = data.player.baseMaxHp !== undefined ? data.player.baseMaxHp : 100;
-                game.player.baseAttack = data.player.baseAttack !== undefined ? data.player.baseAttack : 1;
-                game.player.baseSpeed = data.player.baseSpeed !== undefined ? data.player.baseSpeed : 1;
-                game.player.baseDefence = data.player.baseDefence !== undefined ? data.player.baseDefence : 1;
-                game.player.baseCombo = data.player.baseCombo !== undefined ? data.player.baseCombo : 1;
-                game.player.baseMining = data.player.baseMining !== undefined ? data.player.baseMining : 1;
-                game.player.baseRegen = data.player.baseRegen !== undefined ? data.player.baseRegen : 1;
+                // Base stats always use canonical defaults (not saved values)
+                game.player.baseMaxHp = 100;
+                game.player.baseAttack = 1;
+                game.player.baseSpeed = 1;
+                game.player.baseDefence = 1;
+                game.player.baseCombo = 1;
+                game.player.baseMining = 1;
+                game.player.baseRegen = 1;
 
                 game.player.fuel = data.fuel !== undefined ? data.fuel : 100;
                 game.deaths = data.deaths || 0;
@@ -1528,13 +1529,14 @@
                 game.player.level = data.player.level || 1;
                 game.player.xp = data.player.xp || 0;
                 game.player.xpToLevel = data.player.xpToLevel || 10;
-                game.player.baseMaxHp = data.player.baseMaxHp !== undefined ? data.player.baseMaxHp : 100;
-                game.player.baseAttack = data.player.baseAttack !== undefined ? data.player.baseAttack : 1;
-                game.player.baseSpeed = data.player.baseSpeed !== undefined ? data.player.baseSpeed : 1;
-                game.player.baseDefence = data.player.baseDefence !== undefined ? data.player.baseDefence : 1;
-                game.player.baseCombo = data.player.baseCombo !== undefined ? data.player.baseCombo : 1;
-                game.player.baseMining = data.player.baseMining !== undefined ? data.player.baseMining : 1;
-                game.player.baseRegen = data.player.baseRegen !== undefined ? data.player.baseRegen : 1;
+                // Base stats always use canonical defaults (not saved values)
+                game.player.baseMaxHp = 100;
+                game.player.baseAttack = 1;
+                game.player.baseSpeed = 1;
+                game.player.baseDefence = 1;
+                game.player.baseCombo = 1;
+                game.player.baseMining = 1;
+                game.player.baseRegen = 1;
 
                 // Restore death counter, active slot, fuel, and minerals
                 game.player.fuel = data.fuel !== undefined ? data.fuel : 100;
