@@ -1,0 +1,3165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C O M B O B R E A K E R</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0f;
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            width: 450px;
+            background: #12121a;
+            border-right: 2px solid #00ff88;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* Offset chat panel for fixed stats */
+        .chat-panel {
+            margin-left: 450px;
+        }
+
+        .stats-panel h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff8855;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #00ff8833;
+        }
+
+        .stat-label {
+            color: #00ff88;
+        }
+
+        .stat-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .hp-bar-container {
+            margin-top: 20px;
+            background: #1a1a2e;
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .hp-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+            transition: width 0.3s ease;
+        }
+
+        .hp-label {
+            text-align: center;
+            font-size: 11px;
+            color: #00ff88;
+            margin-top: 4px;
+        }
+
+        .xp-bar-container {
+            margin-top: 10px;
+            background: #1a1a2e;
+            border: 1px solid #4488ff;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .xp-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #4488ff, #2266cc);
+            transition: width 0.3s ease;
+        }
+
+        .xp-label {
+            text-align: center;
+            font-size: 11px;
+            color: #4488ff;
+            margin-top: 4px;
+        }
+
+        .fuel-bar-container {
+            margin-top: 10px;
+            background: #1a1a2e;
+            border: 1px solid #ff8800;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .fuel-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #ff8800, #cc6600);
+            transition: width 0.3s ease;
+        }
+
+        .fuel-label {
+            text-align: center;
+            font-size: 11px;
+            color: #ff8800;
+            margin-top: 4px;
+        }
+
+        /* Storage Panel */
+        .storage-panel {
+            padding: 10px 0;
+        }
+
+        .storage-label {
+            color: #00ff88;
+            font-size: 12px;
+        }
+
+        .storage-desc-content {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            padding: 6px 8px;
+            background: #1a1a2e;
+            border: 1px solid #00ff8833;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .storage-desc-content img {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+            flex-shrink: 0;
+            border: 1px solid #00ff8833;
+            border-radius: 4px;
+        }
+
+        .storage-desc-content span {
+            color: #ddd;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+
+        /* Chat Panel */
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0d0d14;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 100px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.system {
+            background: none;
+            border: none;
+            color: #00ff88;
+            align-self: center;
+            max-width: 90%;
+        }
+
+        .message.systemblue {
+            background: none;
+            border: none;
+            color: #0000ff;
+            align-self: center;
+            max-width: 90%;
+        }
+
+        .message.enemy {
+            background: #2a1a1a;
+            border-left: 3px solid #ff4444;
+            color: #ff6666;
+        }
+
+        .message.player {
+            background: #1a2a1a;
+            border-left: 3px solid #00ff88;
+            color: #00ff88;
+            align-self: flex-end;
+        }
+
+        .message.battle {
+            background: #1a1a2e;
+            border-left: 3px solid #4488ff;
+            color: #88aaff;
+            font-style: italic;
+        }
+
+        .message.damage {
+            background: #2a1a2a;
+            border-left: 3px solid #ff44aa;
+            color: #ff88cc;
+        }
+
+        .message.victory {
+            background: #1a2a2a;
+            border-left: 3px solid #00ffcc;
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        .message.defeat {
+            background: #2a1a1a;
+            border-left: 3px solid #ff0000;
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .message.levelup {
+            background: #2a2a1a;
+            border-left: 3px solid #ffdd00;
+            color: #ffdd00;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Equipment Panel */
+        .equipment-panel {
+            margin-top: 10px;
+        }
+
+        .equipment-panel h4 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .equip-slot {
+            margin-bottom: 8px;
+        }
+
+        .equip-slot label {
+            display: block;
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 2px;
+        }
+
+        .equip-slot select {
+            width: 100%;
+            padding: 8px 24px 8px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: #1a1a2e;
+            color: #00ff88;
+            border: 1px solid #00ff8855;
+            border-radius: 4px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ff88'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .equip-slot select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .equip-slot select:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+
+        /* Action Buttons (inline in chat) */
+        .action-btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 10px 0;
+        }
+
+        .action-btn {
+            padding: 10px 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .action-btn.engage {
+            background: #1a2a1a;
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .action-btn.engage:hover:not(:disabled) {
+            background: #00ff88;
+            color: #0a0a0f;
+            box-shadow: 0 0 20px #00ff8855;
+        }
+
+        .action-btn.retreat {
+            background: #2a1a1a;
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .action-btn.retreat:hover:not(:disabled) {
+            background: #ff4444;
+            color: #0a0a0f;
+            box-shadow: 0 0 20px #ff444455;
+        }
+
+        /* Shop Panel */
+        .shop-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .shop-item-wrapper {
+            display: none;
+        }
+
+        .shop-item-wrapper.visible {
+            display: block;
+        }
+
+        .shop-name {
+            padding: 8px 10px;
+            background: #1a1a2e;
+            border: 1px solid #00ff88;
+            border-radius: 4px 4px 0 0;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .shop-name.cant-afford {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .shop-desc {
+            padding: 0;
+            background: #1a1a2e;
+            border: 1px solid #00ff8833;
+            border-top: none;
+        }
+
+        .shop-name.cant-afford + .shop-desc {
+            border-color: #ff444433;
+        }
+
+        .shop-buy-btn {
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid #00ff88;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #1a1a2e;
+            color: #00ff88;
+            text-align: center;
+            width: 100%;
+        }
+
+        .shop-buy-btn:hover:not(:disabled) {
+            background: #00ff88;
+            color: #0a0a0f;
+            box-shadow: 0 0 15px #00ff8855;
+        }
+
+        .shop-buy-btn:disabled {
+            cursor: not-allowed;
+            border-color: #666;
+            color: #ff4444;
+            opacity: 0.7;
+        }
+
+        .shop-btn {
+            padding: 10px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            border: 1px solid #4488ff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #1a1a2e;
+            color: #4488ff;
+            text-align: left;
+            width: 100%;
+        }
+
+
+
+
+
+        .timer-display {
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .save-indicator {
+            text-align: center;
+            font-size: 10px;
+            color: #00ff88;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-top: 5px;
+        }
+
+        .save-indicator.visible {
+            opacity: 1;
+        }
+
+        /* Options Button */
+        .options-btn {
+            background: #1a1a2e;
+            border: 1px solid #00ff8855;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .options-btn:hover {
+            background: #00ff88;
+            color: #0a0a0f;
+        }
+
+        /* Save Slot Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: #12121a;
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            width: 420px;
+            max-width: 90vw;
+        }
+
+        .modal h3 {
+            color: #00ff88;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .save-slot {
+            background: #1a1a2e;
+            border: 1px solid #00ff8833;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .save-slot.active {
+            border-color: #00ff88;
+            box-shadow: 0 0 8px #00ff8833;
+        }
+
+        .save-slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .save-slot-title {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .save-slot-info {
+            color: #888;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .save-slot-info span {
+            color: #00ff88;
+        }
+
+        .save-slot-empty {
+            color: #555;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        .save-slot-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .slot-btn {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 3px;
+            border: 1px solid;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slot-btn.load {
+            background: #1a1a2e;
+            border-color: #4488ff;
+            color: #4488ff;
+        }
+
+        .slot-btn.load:hover {
+            background: #4488ff;
+            color: #0a0a0f;
+        }
+
+        .slot-btn.delete {
+            background: #2a1a1a;
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .slot-btn.delete:hover {
+            background: #ff4444;
+            color: #0a0a0f;
+        }
+
+        .slot-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .modal-close {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: #1a1a2e;
+            border: 1px solid #888;
+            color: #888;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #888;
+            color: #0a0a0f;
+        }
+
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirm-overlay.visible {
+            display: flex;
+        }
+
+        .confirm-box {
+            background: #12121a;
+            border: 2px solid #ff4444;
+            border-radius: 8px;
+            padding: 20px;
+            width: 320px;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        .confirm-box p {
+            color: #ccc;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 8px 24px;
+            border: 1px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .confirm-btn.yes {
+            background: #ff4444;
+            border-color: #ff4444;
+            color: #fff;
+        }
+
+        .confirm-btn.yes:hover {
+            background: #ff6666;
+        }
+
+        .confirm-btn.no {
+            background: transparent;
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .confirm-btn.no:hover {
+            background: #00ff88;
+            color: #0a0a0f;
+        }
+
+        /* Location Panel */
+        .location-panel {
+            margin-top: 10px;
+        }
+
+        .location-panel h4 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .location-desc {
+            margin-top: 4px;
+        }
+
+        /* Mining Panel */
+        .mining-panel {
+            margin-top: 10px;
+        }
+
+        .mining-panel h4 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .mining-category {
+            margin-bottom: 6px;
+        }
+
+        .mining-cat-label {
+            display: block;
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mining-cat-label.common { color: #aaaaaa; }
+        .mining-cat-label.uncommon { color: #44cc44; }
+        .mining-cat-label.scarce { color: #4488ff; }
+        .mining-cat-label.valuable { color: #aa44ff; }
+        .mining-cat-label.precious { color: #ffaa00; }
+        .mining-cat-label.exotic { color: #ff4488; }
+        .mining-cat-label.ultrarare { color: #ff44ff; }
+
+        .mining-category select {
+            width: 100%;
+            background: #1a1a2e;
+            color: #00ff88;
+            border: 1px solid #00ff8855;
+            border-radius: 4px;
+            padding: 8px 24px 8px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ff88'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .equip-desc {
+            margin-top: 4px;
+            display: none;
+        }
+
+        .equip-desc.visible {
+            display: block;
+        }
+
+        /* Panel Pages */
+        .panel-page {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .panel-page.active {
+            display: flex;
+        }
+
+        .panel-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 0;
+            margin-top: auto;
+            border-top: 1px solid #00ff8844;
+        }
+
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            background: #1a1a2e;
+            border: 1px solid #00ff8833;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 4px;
+            transition: all 0.2s ease;
+            opacity: 0.4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-icon img {
+            width: 38px;
+            height: 38px;
+            image-rendering: pixelated;
+        }
+
+        .nav-icon:hover {
+            opacity: 0.8;
+            border-color: #00ff8888;
+            box-shadow: 0 0 8px #00ff8844;
+        }
+
+        .nav-icon.active {
+            opacity: 1;
+            border-color: #00ff88;
+            box-shadow: 0 0 12px #00ff8866;
+        }
+
+        .nav-icon.hidden {
+            display: none;
+        }
+
+        /* Scrollbar */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #12121a;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #00ff8855;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="stats-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>COMBOBREAKER</h3>
+            <button class="options-btn" id="btn-options">LOAD</button>
+        </div>
+        <h4>/// v1.5.0</h4>
+
+        <div class="hp-bar-container">
+            <div class="hp-bar" id="hp-bar" style="width: 100%"></div>
+        </div>
+        <div class="hp-label" id="hp-label">HP: 100 / 100</div>
+
+        <div class="xp-bar-container">
+            <div class="xp-bar" id="xp-bar" style="width: 0%"></div>
+        </div>
+        <div class="xp-label" id="xp-label">XP: 0 / 10</div>
+
+        <div class="fuel-bar-container">
+            <div class="fuel-bar" id="fuel-bar" style="width: 100%"></div>
+        </div>
+        <div class="fuel-label" id="fuel-label">FUEL: 100 / 100</div>
+
+        <div class="panel-page active" id="page-stats">
+            <div style="margin-top: 20px;">
+                <div class="stat-row">
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="stat-level">1</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Attack</span>
+                    <span class="stat-value" id="stat-attack">5</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Speed</span>
+                    <span class="stat-value" id="stat-speed">10</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Defence</span>
+                    <span class="stat-value" id="stat-defence">3</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Combo</span>
+                    <span class="stat-value" id="stat-combo">5%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Mining</span>
+                    <span class="stat-value" id="stat-mining">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Regen</span>
+                    <span class="stat-value" id="stat-regen">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Deaths</span>
+                    <span class="stat-value" id="stat-deaths">0</span>
+                </div>
+            </div>
+
+            <div class="timer-display" id="timer-display">
+                Next  in: --:--
+            </div>
+            <div class="save-indicator" id="save-indicator">
+                [SAVED]
+            </div>
+
+        </div>
+
+        <div class="panel-page" id="page-installations">
+            <div class="equipment-panel">
+                <div class="equip-slot">
+                    <select id="equip-body"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-body"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="equip-legs"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-legs"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="equip-arms"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-arms"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="equip-weapon"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-weapon"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="equip-chip"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-chip"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="equip-processor"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-processor"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-page" id="page-pilot">
+            <div class="equipment-panel">
+                <div class="equip-slot">
+                    <select id="equip-pilot"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-pilot"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="equip-implant"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-implant"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-page" id="page-location">
+            <div class="location-panel">
+                <div class="equip-slot">
+                    <select id="location-select">
+                        <option value="scrapyard">[ZONE] Scrap Yard</option>
+                        <option value="oldbattlefield">[ZONE] Old Battlefield</option>
+                        <option value="downtown">[ZONE] Downtown</option>
+                        <option value="orbitalstation">[ZONE] Orbital Station</option>
+                        <option value="wasteland">[ZONE] Wasteland</option>
+                        <option value="undercity">[ZONE] Undercity</option>
+                        <option value="industrialzone">[ZONE] Industrial Zone</option>
+                        <option value="frozenreach">[ZONE] Frozen Reach</option>
+                        <option value="neonstrip">[ZONE] Neon Strip</option>
+                        <option value="deadzone">[ZONE] Dead Zone</option>
+                        <option value="asteroidbelt">[ZONE] Asteroid Belt</option>
+                        <option value="home">[ZONE] Home</option>
+                    </select>
+                </div>
+                <div class="location-desc" id="location-desc">
+                    <div class="storage-desc-content"><img src="images/IMAGE.gif" alt="Location"><span>Piles of rusted mechs and salvageable parts. Low-threat scavenger bots roam the wreckage.</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-page" id="page-mining">
+            <div class="mining-panel">
+                <div class="equip-slot">
+                    <select id="equip-drill"><option value="">-- None --</option></select>
+                    <div class="equip-desc" id="equip-desc-drill"></div>
+                </div>
+                <div class="mining-category">
+                    <select id="mining-common" disabled>
+                        <option value="">[COMMON] -- Empty --</option>
+                        <option value="limestone">[COMMON] Limestone</option>
+                        <option value="sandstone">[COMMON] Sandstone</option>
+                        <option value="clay">[COMMON] Clay</option>
+                        <option value="quartz">[COMMON] Quartz</option>
+                        <option value="feldspar">[COMMON] Feldspar</option>
+                    </select>
+                </div>
+                <div class="mining-category">
+                    <select id="mining-uncommon" disabled>
+                        <option value="">[UNCOMMON] -- Empty --</option>
+                        <option value="gypsum">[UNCOMMON] Gypsum</option>
+                        <option value="fluorite">[UNCOMMON] Fluorite</option>
+                        <option value="calcite">[UNCOMMON] Calcite</option>
+                        <option value="mica">[UNCOMMON] Mica</option>
+                        <option value="sulfur">[UNCOMMON] Sulfur</option>
+                    </select>
+                </div>
+                <div class="mining-category">
+                    <select id="mining-scarce" disabled>
+                        <option value="">[SCARCE] -- Empty --</option>
+                        <option value="hematite">[SCARCE] Hematite</option>
+                        <option value="magnetite">[SCARCE] Magnetite</option>
+                        <option value="bauxite">[SCARCE] Bauxite</option>
+                        <option value="galena">[SCARCE] Galena</option>
+                        <option value="sphalerite">[SCARCE] Sphalerite</option>
+                    </select>
+                </div>
+                <div class="mining-category">
+                    <select id="mining-valuable" disabled>
+                        <option value="">[VALUABLE] -- Empty --</option>
+                        <option value="chalcopyrite">[VALUABLE] Chalcopyrite</option>
+                        <option value="cassiterite">[VALUABLE] Cassiterite</option>
+                        <option value="cinnabar">[VALUABLE] Cinnabar</option>
+                        <option value="chromite">[VALUABLE] Chromite</option>
+                        <option value="ilmenite">[VALUABLE] Ilmenite</option>
+                    </select>
+                </div>
+                <div class="mining-category">
+                    <select id="mining-precious" disabled>
+                        <option value="">[PRECIOUS] -- Empty --</option>
+                        <option value="argentite">[PRECIOUS] Argentite</option>
+                        <option value="gold">[PRECIOUS] Gold</option>
+                        <option value="platinum">[PRECIOUS] Platinum</option>
+                        <option value="garnet">[PRECIOUS] Garnet</option>
+                    </select>
+                </div>
+                <div class="mining-category">
+                    <select id="mining-exotic" disabled>
+                        <option value="">[EXOTIC] -- Empty --</option>
+                        <option value="uraninite">[EXOTIC] Uraninite</option>
+                        <option value="cobaltite">[EXOTIC] Cobaltite</option>
+                        <option value="molybdenite">[EXOTIC] Molybdenite</option>
+                        <option value="vanadinite">[EXOTIC] Vanadinite</option>
+                        <option value="scheelite">[EXOTIC] Scheelite</option>
+                    </select>
+                </div>
+                <div class="mining-category">
+                    <select id="mining-ultrarare" disabled>
+                        <option value="">[ULTRARARE] -- Empty --</option>
+                        <option value="diamond">[ULTRARARE] Diamond</option>
+                        <option value="emerald">[ULTRARARE] Emerald</option>
+                        <option value="sapphire">[ULTRARARE] Sapphire</option>
+                        <option value="alexandrite">[ULTRARARE] Alexandrite</option>
+                        <option value="tanzanite">[ULTRARARE] Tanzanite</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-page" id="page-storage">
+            <div class="storage-panel">
+                <div class="equip-slot">
+                    <select id="storage-log"><option value="">[LOGS] -- Empty --</option></select>
+                    <div class="storage-desc" id="storage-desc-log"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="storage-key"><option value="">[KEYS] -- Empty --</option></select>
+                    <div class="storage-desc" id="storage-desc-key"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="storage-dna"><option value="">[DNA] -- Empty --</option></select>
+                    <div class="storage-desc" id="storage-desc-dna"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="storage-debris"><option value="">[DEBRIS] -- Empty --</option></select>
+                    <div class="storage-desc" id="storage-desc-debris"></div>
+                </div>
+                <div class="equip-slot">
+                    <select id="storage-scrap"><option value="">[SCRAP] -- Empty --</option></select>
+                    <div class="storage-desc" id="storage-desc-scrap"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-page" id="page-store">
+            <div class="shop-panel" id="shop-panel">
+                <div class="shop-item-wrapper" id="shop-wrapper-1">
+                    <div class="shop-name" id="shop-name-1"></div>
+                    <div class="shop-desc" id="shop-desc-1"></div>
+                    <button class="shop-buy-btn" id="shop-buy-1" disabled>--</button>
+                </div>
+                <div class="shop-item-wrapper" id="shop-wrapper-2">
+                    <div class="shop-name" id="shop-name-2"></div>
+                    <div class="shop-desc" id="shop-desc-2"></div>
+                    <button class="shop-buy-btn" id="shop-buy-2" disabled>--</button>
+                </div>
+                <div class="shop-item-wrapper" id="shop-wrapper-3">
+                    <div class="shop-name" id="shop-name-3"></div>
+                    <div class="shop-desc" id="shop-desc-3"></div>
+                    <button class="shop-buy-btn" id="shop-buy-3" disabled>--</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-nav" id="panel-nav">
+        </div>
+    </div>
+
+    <div class="chat-panel">
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages appear here -->
+            <div class="action-panel">   <!-- Edit by me -->
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="save-modal">
+        <div class="modal">
+            <h3>[ SAVE SLOTS ]</h3>
+            <div class="save-slot" id="slot-1">
+                <div class="save-slot-header">
+                    <span class="save-slot-title">Slot 1</span>
+                </div>
+                <div class="save-slot-info" id="slot-1-info">
+                    <span class="save-slot-empty">-- Empty --</span>
+                </div>
+                <div class="save-slot-actions">
+                    <button class="slot-btn load" id="slot-1-load" onclick="loadFromSlot(1)">Load</button>
+                    <button class="slot-btn delete" id="slot-1-delete" onclick="deleteSlot(1)" disabled>Delete</button>
+                </div>
+            </div>
+            <div class="save-slot" id="slot-2">
+                <div class="save-slot-header">
+                    <span class="save-slot-title">Slot 2</span>
+                </div>
+                <div class="save-slot-info" id="slot-2-info">
+                    <span class="save-slot-empty">-- Empty --</span>
+                </div>
+                <div class="save-slot-actions">
+                    <button class="slot-btn load" id="slot-2-load" onclick="loadFromSlot(2)">Load</button>
+                    <button class="slot-btn delete" id="slot-2-delete" onclick="deleteSlot(2)" disabled>Delete</button>
+                </div>
+            </div>
+            <div class="save-slot" id="slot-3">
+                <div class="save-slot-header">
+                    <span class="save-slot-title">Slot 3</span>
+                </div>
+                <div class="save-slot-info" id="slot-3-info">
+                    <span class="save-slot-empty">-- Empty --</span>
+                </div>
+                <div class="save-slot-actions">
+                    <button class="slot-btn load" id="slot-3-load" onclick="loadFromSlot(3)">Load</button>
+                    <button class="slot-btn delete" id="slot-3-delete" onclick="deleteSlot(3)" disabled>Delete</button>
+                </div>
+            </div>
+            <button class="modal-close" id="modal-close">Close</button>
+        </div>
+    </div>
+
+    <div class="confirm-overlay" id="confirm-delete-modal">
+        <div class="confirm-box">
+            <p>Are you sure you want to delete?</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn yes" id="confirm-delete-yes">Yes</button>
+                <button class="confirm-btn no" id="confirm-delete-no">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="enemies_scrapyard.js"></script>
+    <script src="enemies_oldbattlefield.js"></script>
+    <script src="enemies_downtown.js"></script>
+    <script src="enemies_orbitalstation.js"></script>
+    <script src="enemies_wasteland.js"></script>
+    <script src="enemies_undercity.js"></script>
+    <script src="enemies_industrialzone.js"></script>
+    <script src="enemies_frozenreach.js"></script>
+    <script src="enemies_neonstrip.js"></script>
+    <script src="enemies_deadzone.js"></script>
+    <script src="ambush_scrapyard.js"></script>
+    <script src="ambush_oldbattlefield.js"></script>
+    <script src="ambush_downtown.js"></script>
+    <script src="ambush_orbitalstation.js"></script>
+    <script src="ambush_wasteland.js"></script>
+    <script src="ambush_undercity.js"></script>
+    <script src="ambush_industrialzone.js"></script>
+    <script src="ambush_frozenreach.js"></script>
+    <script src="ambush_neonstrip.js"></script>
+    <script src="ambush_deadzone.js"></script>
+    <script src="items.js"></script>
+    <script src="storyitems.js"></script>
+    <script src="encounters_home.js"></script>
+    <script src="encounters_scrapyard.js"></script>
+    <script src="encounters_oldbattlefield.js"></script>
+    <script src="encounters_downtown.js"></script>
+    <script src="encounters_orbitalstation.js"></script>
+    <script src="encounters_wasteland.js"></script>
+    <script src="encounters_undercity.js"></script>
+    <script src="encounters_industrialzone.js"></script>
+    <script src="encounters_frozenreach.js"></script>
+    <script src="encounters_neonstrip.js"></script>
+    <script src="encounters_deadzone.js"></script>
+    <script src="mining_scrapyard.js"></script>
+    <script src="mining_oldbattlefield.js"></script>
+    <script src="mining_downtown.js"></script>
+    <script src="mining_orbitalstation.js"></script>
+    <script src="mining_wasteland.js"></script>
+    <script src="mining_undercity.js"></script>
+    <script src="mining_industrialzone.js"></script>
+    <script src="mining_frozenreach.js"></script>
+    <script src="mining_neonstrip.js"></script>
+    <script src="mining_deadzone.js"></script>
+    <script src="mining_asteroidbelt.js"></script>
+    <script>
+        // Game State
+        const game = {
+            player: {
+                // Base stats (without equipment)
+                baseMaxHp: 100,
+                baseAttack: 5,
+                baseSpeed: 10,
+                baseDefence: 3,
+                baseCombo: 5,
+                baseMining: 0,
+                baseRegen: 0,
+                // Current stats (with equipment)
+                level: 1,
+                xp: 0,
+                xpToLevel: 10,
+                maxHp: 100,
+                hp: 100,
+                attack: 5,
+                speed: 10,
+                defence: 3,
+                combo: 5,
+                mining: 0,
+                regen: 0,
+                fuel: 100,
+                maxFuel: 100
+            },
+            // Inventory: array of item objects
+            inventory: [],
+            // Equipped items by slot (stores item name or null)
+            equipment: {
+                body: null,
+                legs: null,
+                arms: null,
+                weapon: null,
+                chip: null,
+                processor: null,
+                pilot: null,
+                drill: null,
+                implant: null
+            },
+            currentWave: null,
+            inBattle: false,
+            battleInterval: null,
+            regenInterval: null,
+            waveTimer: null,
+            nextWaveTime: 0,
+            waveExpireTimer: null,
+            WAVE_INTERVAL: 5000, // 5 seconds wait
+            WAVE_EXPIRE: 30000, // 30 seconds to engage
+            countdownInterval: null,
+            countdownMsg: null,
+            ENCOUNTER_CHANCE: 20, // % chance for encounter instead of enemy wave
+            deaths: 0,
+            activeSlot: null, // Which save slot is currently active (1-3 or null)
+            minerals: {}, // Collected minerals by category
+            storyItems: ['Mysterious Note', 'Old Key', 'Unreadable DNA Tag', 'Destroyed Mech Heart'], // Collected story items
+            isAmbush: false // Whether current wave is an ambush
+        };
+
+        // Current encounter state
+        let currentEncounter = null;
+        let shopItems = [];
+        let currentMiningEvent = null;
+
+        const MINING_CHANCE = 15; // % chance for mining event instead of enemy wave
+        const AMBUSH_CHANCE = 10; // % chance for ambush instead of normal enemy wave
+
+        const SAVE_KEY = 'combobreaker_save';
+        const SLOT_KEYS = ['combobreaker_slot_1', 'combobreaker_slot_2', 'combobreaker_slot_3'];
+
+        // Build save data object from current game state
+        function buildSaveData() {
+            return {
+                version: '1.1.0',
+                player: {
+                    level: game.player.level,
+                    xp: game.player.xp,
+                    xpToLevel: game.player.xpToLevel,
+                    baseMaxHp: game.player.baseMaxHp,
+                    baseAttack: game.player.baseAttack,
+                    baseSpeed: game.player.baseSpeed,
+                    baseDefence: game.player.baseDefence,
+                    baseCombo: game.player.baseCombo,
+                    baseMining: game.player.baseMining,
+                    baseRegen: game.player.baseRegen
+                },
+                inventory: game.inventory.map(item => item.name),
+                equipment: { ...game.equipment },
+                fuel: game.player.fuel,
+                deaths: game.deaths,
+                activeSlot: game.activeSlot,
+                location: currentLocation,
+                minerals: game.minerals || {},
+                storyItems: game.storyItems || []
+            };
+        }
+
+        // Get slot data from localStorage (returns parsed object or null)
+        function getSlotData(slotNum) {
+            try {
+                const raw = localStorage.getItem(SLOT_KEYS[slotNum - 1]);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Refresh all slot displays in the modal
+        function refreshSlotDisplays() {
+            for (let i = 1; i <= 3; i++) {
+                const data = getSlotData(i);
+                const slotEl = document.getElementById(`slot-${i}`);
+                const titleEl = slotEl.querySelector('.save-slot-title');
+                const infoEl = document.getElementById(`slot-${i}-info`);
+                const loadBtn = document.getElementById(`slot-${i}-load`);
+                const deleteBtn = document.getElementById(`slot-${i}-delete`);
+                const isActive = game.activeSlot === i;
+
+                // Highlight active slot
+                slotEl.classList.toggle('active', isActive);
+                titleEl.textContent = isActive ? `Slot ${i} [ACTIVE]` : `Slot ${i}`;
+
+                if (data && data.player) {
+                    const p = data.player;
+                    infoEl.innerHTML =
+                        `Level: <span>${p.level || 1}</span> | ` +
+                        `HP: <span>${p.baseMaxHp || 100}</span> | ` +
+                        `ATK: <span>${p.baseAttack || 5}</span> | ` +
+                        `SPD: <span>${p.baseSpeed || 10}</span> | ` +
+                        `DEF: <span>${p.baseDefence || 3}</span><br>` +
+                        `Combo: <span>${p.baseCombo || 5}%</span> | ` +
+                        `Deaths: <span>${data.deaths || 0}</span> | ` +
+                        `Items: <span>${(data.inventory || []).length}</span>`;
+                    loadBtn.disabled = false;
+                    deleteBtn.disabled = false;
+                } else {
+                    infoEl.innerHTML = '<span class="save-slot-empty">-- Empty (Fresh Start) --</span>';
+                    loadBtn.disabled = false;
+                    deleteBtn.disabled = true;
+                }
+            }
+        }
+
+        // Load game from a slot (empty slot = fresh start)
+        function loadFromSlot(slotNum) {
+            const data = getSlotData(slotNum);
+            game.activeSlot = slotNum;
+
+            // Stop all active timers and battle state
+            game.inBattle = false;
+            game.currentWave = null;
+            game.isAmbush = false;
+            currentEncounter = null;
+            currentMiningEvent = null;
+            shopItems = [];
+            if (game.battleInterval) { clearInterval(game.battleInterval); game.battleInterval = null; }
+            if (game.regenInterval) { clearInterval(game.regenInterval); game.regenInterval = null; }
+            if (game.waveTimer) { clearInterval(game.waveTimer); game.waveTimer = null; }
+            if (game.waveExpireTimer) { clearTimeout(game.waveExpireTimer); game.waveExpireTimer = null; }
+            clearCountdown();
+
+            if (data && data.player) {
+                // Restore player base stats
+                game.player.level = data.player.level || 1;
+                game.player.xp = data.player.xp || 0;
+                game.player.xpToLevel = data.player.xpToLevel || 10;
+                game.player.baseMaxHp = data.player.baseMaxHp || 100;
+                game.player.baseAttack = data.player.baseAttack || 5;
+                game.player.baseSpeed = data.player.baseSpeed || 10;
+                game.player.baseDefence = data.player.baseDefence || 3;
+                game.player.baseCombo = data.player.baseCombo || 5;
+                game.player.baseMining = data.player.baseMining || 0;
+                game.player.baseRegen = data.player.baseRegen || 0;
+
+                game.player.fuel = data.fuel !== undefined ? data.fuel : 100;
+                game.deaths = data.deaths || 0;
+                game.minerals = data.minerals || {};
+                game.storyItems = data.storyItems && data.storyItems.length > 0 ? data.storyItems : ['Mysterious Note', 'Old Key', 'Unreadable DNA Tag', 'Destroyed Mech Heart'];
+
+                // Restore location
+                if (data.location && LOCATIONS[data.location]) {
+                    currentLocation = data.location;
+                } else {
+                    currentLocation = 'scrapyard';
+                }
+
+                // Restore inventory
+                game.inventory = [];
+                if (data.inventory && Array.isArray(data.inventory)) {
+                    data.inventory.forEach(itemName => {
+                        const item = ITEMS.find(i => i.name === itemName);
+                        if (item) game.inventory.push(item);
+                    });
+                }
+
+                // Restore equipment
+                if (data.equipment) {
+                    game.equipment = {
+                        body: data.equipment.body || null,
+                        legs: data.equipment.legs || null,
+                        arms: data.equipment.arms || null,
+                        weapon: data.equipment.weapon || null,
+                        chip: data.equipment.chip || null,
+                        processor: data.equipment.processor || null,
+                        pilot: data.equipment.pilot || null,
+                        drill: data.equipment.drill || null,
+                        implant: data.equipment.implant || null
+                    };
+                }
+            } else {
+                // Empty slot = fresh start
+                game.player.level = 1;
+                game.player.xp = 0;
+                game.player.xpToLevel = 10;
+                game.player.baseMaxHp = 100;
+                game.player.baseAttack = 5;
+                game.player.baseSpeed = 10;
+                game.player.baseDefence = 3;
+                game.player.baseCombo = 5;
+                game.player.baseMining = 0;
+                game.player.baseRegen = 0;
+                game.player.fuel = 100;
+                game.deaths = 0;
+                game.minerals = {};
+                game.storyItems = ['Mysterious Note', 'Old Key', 'Unreadable DNA Tag', 'Destroyed Mech Heart'];
+                game.inventory = [];
+                game.equipment = { body: null, legs: null, arms: null, weapon: null, chip: null, processor: null, pilot: null, drill: null, implant: null };
+                currentLocation = 'scrapyard';
+            }
+
+            // Update location UI
+            document.getElementById('location-select').value = currentLocation;
+            document.getElementById('location-desc').innerHTML = `<div class="storage-desc-content"><img src="${LOCATIONS[currentLocation].image}" alt="Location"><span>${LOCATIONS[currentLocation].desc}</span></div>`;
+
+            recalculateStats();
+            game.player.hp = game.player.maxHp;
+            updateEquipmentUI();
+            updateMiningUI();
+            updateStorageUI();
+            updateStats();
+            saveGame();
+
+            // Reset UI: clear chat, reset page, disable buttons
+            chatMessages.innerHTML = '';
+            storeAvailable = false;
+            showPage(0);
+            setEquipmentLocked(false);
+            hideInlineButtons();
+
+            // Close modal and notify
+            document.getElementById('save-modal').classList.remove('visible');
+            if (data && data.player) {
+                addMessage(`[SLOT ${slotNum} LOADED] Level ${game.player.level} restored.`, 'system');
+            } else {
+                addMessage(`[SLOT ${slotNum} NOW ACTIVE]`, 'system');
+            }
+
+            // Restart wave cycle
+            setTimeout(() => {
+                spawnWave();
+                startWaveTimer();
+            }, 2000);
+        }
+
+        // Delete a save slot (with confirmation)
+        let pendingDeleteSlot = null;
+
+        function deleteSlot(slotNum) {
+            pendingDeleteSlot = slotNum;
+            document.getElementById('confirm-delete-modal').classList.add('visible');
+        }
+
+        document.getElementById('confirm-delete-yes').addEventListener('click', () => {
+            if (pendingDeleteSlot !== null) {
+                localStorage.removeItem(SLOT_KEYS[pendingDeleteSlot - 1]);
+                if (game.activeSlot === pendingDeleteSlot) {
+                    game.activeSlot = null;
+                }
+                refreshSlotDisplays();
+                pendingDeleteSlot = null;
+            }
+            document.getElementById('confirm-delete-modal').classList.remove('visible');
+        });
+
+        document.getElementById('confirm-delete-no').addEventListener('click', () => {
+            pendingDeleteSlot = null;
+            document.getElementById('confirm-delete-modal').classList.remove('visible');
+        });
+
+        // Save game state to localStorage
+        function saveGame() {
+            const saveData = buildSaveData();
+
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+                // Also update the active slot so its displayed stats stay current
+                if (game.activeSlot) {
+                    localStorage.setItem(SLOT_KEYS[game.activeSlot - 1], JSON.stringify(saveData));
+                }
+                showSaveIndicator();
+            } catch (e) {
+                console.error('Failed to save game:', e);
+            }
+        }
+
+        // Load game state from localStorage
+        function loadGame() {
+            try {
+                const savedData = localStorage.getItem(SAVE_KEY);
+                if (!savedData) return false;
+
+                const data = JSON.parse(savedData);
+
+                // Restore player base stats and progression
+                game.player.level = data.player.level || 1;
+                game.player.xp = data.player.xp || 0;
+                game.player.xpToLevel = data.player.xpToLevel || 10;
+                game.player.baseMaxHp = data.player.baseMaxHp || 100;
+                game.player.baseAttack = data.player.baseAttack || 5;
+                game.player.baseSpeed = data.player.baseSpeed || 10;
+                game.player.baseDefence = data.player.baseDefence || 3;
+                game.player.baseCombo = data.player.baseCombo || 5;
+                game.player.baseMining = data.player.baseMining || 0;
+                game.player.baseRegen = data.player.baseRegen || 0;
+
+                // Restore death counter, active slot, fuel, and minerals
+                game.player.fuel = data.fuel !== undefined ? data.fuel : 100;
+                game.deaths = data.deaths || 0;
+                game.activeSlot = data.activeSlot || null;
+                game.minerals = data.minerals || {};
+                game.storyItems = data.storyItems && data.storyItems.length > 0 ? data.storyItems : ['Mysterious Note', 'Old Key', 'Unreadable DNA Tag', 'Destroyed Mech Heart'];
+
+                // Restore location
+                if (data.location && LOCATIONS[data.location]) {
+                    currentLocation = data.location;
+                    document.getElementById('location-select').value = currentLocation;
+                    document.getElementById('location-desc').innerHTML = `<div class="storage-desc-content"><img src="${LOCATIONS[currentLocation].image}" alt="Location"><span>${LOCATIONS[currentLocation].desc}</span></div>`;
+                }
+
+                // Restore inventory (convert names back to item objects)
+                game.inventory = [];
+                if (data.inventory && Array.isArray(data.inventory)) {
+                    data.inventory.forEach(itemName => {
+                        const item = ITEMS.find(i => i.name === itemName);
+                        if (item) {
+                            game.inventory.push(item);
+                        }
+                    });
+                }
+
+                // Restore equipment
+                if (data.equipment) {
+                    game.equipment = {
+                        body: data.equipment.body || null,
+                        legs: data.equipment.legs || null,
+                        arms: data.equipment.arms || null,
+                        weapon: data.equipment.weapon || null,
+                        chip: data.equipment.chip || null,
+                        processor: data.equipment.processor || null,
+                        pilot: data.equipment.pilot || null,
+                        drill: data.equipment.drill || null,
+                        implant: data.equipment.implant || null
+                    };
+                }
+
+                return true;
+            } catch (e) {
+                console.error('Failed to load game:', e);
+                return false;
+            }
+        }
+
+        // Show save indicator briefly
+        function showSaveIndicator() {
+            const indicator = document.getElementById('save-indicator');
+            indicator.classList.add('visible');
+            setTimeout(() => {
+                indicator.classList.remove('visible');
+            }, 1500);
+        }
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chat-messages');
+        const timerDisplay = document.getElementById('timer-display');
+
+        // Create action buttons (inserted into chat flow dynamically)
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'action-btn-container';
+        const btnEngage = document.createElement('button');
+        btnEngage.className = 'action-btn engage';
+        btnEngage.id = 'btn-engage';
+        btnEngage.disabled = true;
+        btnEngage.textContent = 'Engage';
+        const btnRetreat = document.createElement('button');
+        btnRetreat.className = 'action-btn retreat';
+        btnRetreat.id = 'btn-retreat';
+        btnRetreat.disabled = true;
+        btnRetreat.textContent = 'Decline';
+        btnContainer.appendChild(btnEngage);
+        btnContainer.appendChild(btnRetreat);
+
+        // Panel page navigation
+        const PAGES = [
+            { id: 'page-stats', label: 'Stats', icon: 'images/STATS.gif' },        // 0
+            { id: 'page-installations', label: 'Installations', icon: 'images/INSTALLATIONS.gif' }, // 1
+            { id: 'page-pilot', label: 'Pilot', icon: 'images/PILOT.gif' },         // 2
+            { id: 'page-location', label: 'Location', icon: 'images/LOCATION.gif' },   // 3
+            { id: 'page-mining', label: 'Mining', icon: 'images/MINING.gif' },        // 4
+            { id: 'page-storage', label: 'Storage', icon: 'images/STORAGE.gif' },     // 5
+            { id: 'page-store', label: 'Store', icon: 'images/STORE.gif' }           // 6
+        ];
+        let currentPage = 0;
+        let storeAvailable = false;
+
+        // Build nav icons
+        const panelNav = document.getElementById('panel-nav');
+        PAGES.forEach((page, i) => {
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'nav-icon';
+            iconDiv.id = `nav-icon-${i}`;
+            iconDiv.title = page.label;
+            const img = document.createElement('img');
+            img.src = page.icon;
+            img.alt = page.label;
+            iconDiv.appendChild(img);
+            iconDiv.addEventListener('click', () => showPage(i));
+            panelNav.appendChild(iconDiv);
+        });
+        // Set initial active state and hide store icon
+        document.getElementById('nav-icon-0').classList.add('active');
+        document.getElementById('nav-icon-6').classList.add('hidden');
+
+        function getAvailablePages() {
+            if (storeAvailable) return [0, 1, 2, 3, 4, 5, 6];
+            return [0, 1, 2, 3, 4, 5];
+        }
+
+        function updatePanelNav() {
+            const available = getAvailablePages();
+            PAGES.forEach((p, i) => {
+                const icon = document.getElementById(`nav-icon-${i}`);
+                if (!icon) return;
+                icon.classList.toggle('active', i === currentPage);
+                icon.classList.toggle('hidden', !available.includes(i));
+            });
+        }
+
+        function showPage(pageIndex) {
+            PAGES.forEach((p, i) => {
+                document.getElementById(p.id).classList.toggle('active', i === pageIndex);
+            });
+            currentPage = pageIndex;
+            updatePanelNav();
+        }
+
+        // Location system
+        const LOCATIONS = {
+            scrapyard: {
+                enemies: ENEMIES_SCRAPYARD,
+                encounters: ENCOUNTERS_SCRAPYARD,
+                mining: MINING_SCRAPYARD,
+                ambush: AMBUSH_SCRAPYARD,
+                desc: "Piles of rusted mechs and salvageable parts. Low-threat scavenger bots roam the wreckage.",
+                image: "images/IMAGE.gif"
+            },
+            oldbattlefield: {
+                enemies: ENEMIES_OLDBATTLEFIELD,
+                encounters: ENCOUNTERS_OLDBATTLEFIELD,
+                mining: MINING_OLDBATTLEFIELD,
+                ambush: AMBUSH_OLDBATTLEFIELD,
+                desc: "Scarred terrain littered with war machines still running combat protocols from a forgotten conflict.",
+                image: "images/IMAGE.gif"
+            },
+            downtown: {
+                enemies: ENEMIES_DOWNTOWN,
+                encounters: ENCOUNTERS_DOWNTOWN,
+                mining: MINING_DOWNTOWN,
+                ambush: AMBUSH_DOWNTOWN,
+                desc: "Neon-lit urban sprawl. Corporate security and street-modded combat rigs patrol the blocks.",
+                image: "images/IMAGE.gif"
+            },
+            orbitalstation: {
+                enemies: ENEMIES_ORBITALSTATION,
+                encounters: ENCOUNTERS_ORBITALSTATION,
+                mining: MINING_ORBITALSTATION,
+                ambush: AMBUSH_ORBITALSTATION,
+                desc: "A derelict orbital platform. Rogue drones and hijacked defense systems stalk the corridors.",
+                image: "images/IMAGE.gif"
+            },
+            wasteland: {
+                enemies: ENEMIES_WASTELAND,
+                encounters: ENCOUNTERS_WASTELAND,
+                mining: MINING_WASTELAND,
+                ambush: AMBUSH_WASTELAND,
+                desc: "Irradiated badlands where feral war machines and dust-choked scavengers fight over scraps.",
+                image: "images/IMAGE.gif"
+            },
+            undercity: {
+                enemies: ENEMIES_UNDERCITY,
+                encounters: ENCOUNTERS_UNDERCITY,
+                mining: MINING_UNDERCITY,
+                ambush: AMBUSH_UNDERCITY,
+                desc: "A labyrinth of tunnels and sewers beneath the streets. Black-ops units and tunnel rats lurk in the dark.",
+                image: "images/IMAGE.gif"
+            },
+            industrialzone: {
+                enemies: ENEMIES_INDUSTRIALZONE,
+                encounters: ENCOUNTERS_INDUSTRIALZONE,
+                mining: MINING_INDUSTRIALZONE,
+                ambush: AMBUSH_INDUSTRIALZONE,
+                desc: "Sprawling factories and refineries. Malfunctioning production bots guard the assembly lines.",
+                image: "images/IMAGE.gif"
+            },
+            frozenreach: {
+                enemies: ENEMIES_FROZENREACH,
+                encounters: ENCOUNTERS_FROZENREACH,
+                mining: MINING_FROZENREACH,
+                ambush: AMBUSH_FROZENREACH,
+                desc: "Arctic tundra locked in permanent winter. Cryo-adapted war machines patrol the frozen expanse.",
+                image: "images/IMAGE.gif"
+            },
+            neonstrip: {
+                enemies: ENEMIES_NEONSTRIP,
+                encounters: ENCOUNTERS_NEONSTRIP,
+                mining: MINING_NEONSTRIP,
+                ambush: AMBUSH_NEONSTRIP,
+                desc: "The flashy entertainment district. Syndicate enforcers and casino muscle keep the peace their way.",
+                image: "images/IMAGE.gif"
+            },
+            deadzone: {
+                enemies: ENEMIES_DEADZONE,
+                encounters: ENCOUNTERS_DEADZONE,
+                mining: MINING_DEADZONE,
+                ambush: AMBUSH_DEADZONE,
+                desc: "Heavily contaminated killing fields. Corrupted AI and mutated war platforms roam unchecked.",
+                image: "images/IMAGE.gif"
+            },
+            asteroidbelt: {
+                enemies: null,
+                encounters: null,
+                mining: MINING_ASTEROIDBELT,
+                ambush: null,
+                desc: "A dense field of mineral-rich asteroids. No hostiles, no traders — just rock, ore, and the void.",
+                image: "images/IMAGE.gif"
+            },
+            home: {
+                enemies: null,
+                encounters: ENCOUNTERS_HOME,
+                mining: null,
+                ambush: null,
+                desc: "Your workshop. The Professor is here, tinkering with salvage and offering what they've found.",
+                image: "images/IMAGE.gif"
+            }
+        };
+
+        let currentLocation = 'scrapyard';
+
+        function getEnemies() {
+            return LOCATIONS[currentLocation].enemies;
+        }
+
+        function getEncounters() {
+            return LOCATIONS[currentLocation].encounters;
+        }
+
+        const LOCATION_NAMES = {
+            scrapyard: 'SCRAP YARD',
+            oldbattlefield: 'OLD BATTLEFIELD',
+            downtown: 'DOWNTOWN',
+            orbitalstation: 'ORBITAL STATION',
+            wasteland: 'WASTELAND',
+            undercity: 'UNDERCITY',
+            industrialzone: 'INDUSTRIAL ZONE',
+            frozenreach: 'FROZEN REACH',
+            neonstrip: 'NEON STRIP',
+            deadzone: 'DEAD ZONE',
+            asteroidbelt: 'ASTEROID BELT',
+            home: 'HOME'
+        };
+
+        function changeLocation(locationKey) {
+            currentLocation = locationKey;
+            document.getElementById('location-desc').innerHTML = `<div class="storage-desc-content"><img src="${LOCATIONS[locationKey].image}" alt="Location"><span>${LOCATIONS[locationKey].desc}</span></div>`;
+
+            // Stop all active timers and battle state
+            game.inBattle = false;
+            game.currentWave = null;
+            game.isAmbush = false;
+            currentEncounter = null;
+            currentMiningEvent = null;
+            shopItems = [];
+            if (game.battleInterval) { clearInterval(game.battleInterval); game.battleInterval = null; }
+            if (game.regenInterval) { clearInterval(game.regenInterval); game.regenInterval = null; }
+            if (game.waveTimer) { clearInterval(game.waveTimer); game.waveTimer = null; }
+            if (game.waveExpireTimer) { clearTimeout(game.waveExpireTimer); game.waveExpireTimer = null; }
+            clearCountdown();
+
+            // Reset UI
+            chatMessages.innerHTML = '';
+            storeAvailable = false;
+            if (currentPage === 6) showPage(0);
+            updatePanelNav();
+            setEquipmentLocked(false);
+            hideInlineButtons();
+
+            saveGame();
+
+            addMessage(`[NOW IN ${LOCATION_NAMES[locationKey]}]`, 'system');
+
+            // Restart wave cycle
+            setTimeout(() => {
+                spawnWave();
+                startWaveTimer();
+            }, 2000);
+        }
+
+        document.getElementById('location-select').addEventListener('change', (e) => {
+            changeLocation(e.target.value);
+        });
+
+        // Add message to chat with delay
+        async function addMessage(text, type = 'system') {
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            chatMessages.appendChild(msg);
+            msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            await new Promise(resolve => setTimeout(resolve, 800));
+        }
+
+        // Update UI
+        function updateStats() {
+            const p = game.player;
+
+            // HP Bar
+            const hpPercent = (p.hp / p.maxHp) * 100;
+            document.getElementById('hp-bar').style.width = `${hpPercent}%`;
+            document.getElementById('hp-label').textContent = `HP: ${p.hp} / ${p.maxHp}`;
+
+            // XP Bar
+            const xpPercent = (p.xp / p.xpToLevel) * 100;
+            document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+            document.getElementById('xp-label').textContent = `XP: ${p.xp} / ${p.xpToLevel}`;
+
+            // Fuel Bar
+            const fuelPercent = (p.fuel / p.maxFuel) * 100;
+            document.getElementById('fuel-bar').style.width = `${fuelPercent}%`;
+            document.getElementById('fuel-label').textContent = `FUEL: ${p.fuel} / ${p.maxFuel}`;
+
+            // Stats
+            document.getElementById('stat-level').textContent = p.level;
+            document.getElementById('stat-attack').textContent = p.attack;
+            document.getElementById('stat-speed').textContent = p.speed;
+            document.getElementById('stat-defence').textContent = p.defence;
+            document.getElementById('stat-combo').textContent = `${p.combo}%`;
+            document.getElementById('stat-mining').textContent = p.mining;
+            document.getElementById('stat-regen').textContent = p.regen;
+            document.getElementById('stat-deaths').textContent = game.deaths;
+        }
+
+        // Recalculate stats from base + equipment
+        function recalculateStats() {
+            const p = game.player;
+            const oldMaxHp = p.maxHp;
+
+            // Start with base stats
+            p.maxHp = p.baseMaxHp;
+            p.attack = p.baseAttack;
+            p.speed = p.baseSpeed;
+            p.defence = p.baseDefence;
+            p.combo = p.baseCombo;
+            p.mining = p.baseMining;
+            p.regen = p.baseRegen;
+
+            // Add equipment bonuses
+            for (const slot in game.equipment) {
+                const itemName = game.equipment[slot];
+                if (itemName) {
+                    const item = ITEMS.find(i => i.name === itemName);
+                    if (item && item.stats) {
+                        if (item.stats.hp) p.maxHp += item.stats.hp;
+                        if (item.stats.attack) p.attack += item.stats.attack;
+                        if (item.stats.speed) p.speed += item.stats.speed;
+                        if (item.stats.defence) p.defence += item.stats.defence;
+                        if (item.stats.combo) p.combo += item.stats.combo;
+                        if (item.stats.mining) p.mining += item.stats.mining;
+                        if (item.stats.regen) p.regen += item.stats.regen;
+                    }
+                }
+            }
+
+            // Adjust current HP if it exceeds new max
+            if (p.hp > p.maxHp) {
+                p.hp = p.maxHp;
+            }
+
+            updateStats();
+        }
+
+        // Get current XP bonus from equipped processor
+        function getXpBonus() {
+            const processorName = game.equipment.processor;
+            if (!processorName) return 0;
+            const item = ITEMS.find(i => i.name === processorName);
+            if (item && item.stats && item.stats.xpBonus) return item.stats.xpBonus;
+            return 0;
+        }
+
+        // Update equipment dropdowns with inventory items
+        const SLOT_LABELS = {
+            body: 'BODY', legs: 'LEGS', arms: 'ARMS', weapon: 'WEAPON',
+            chip: 'CHIP', processor: 'PROC', implant: 'IMPLANT', pilot: 'PILOT', drill: 'DRILL'
+        };
+
+        function updateEquipmentUI() {
+            const slots = ['body', 'legs', 'arms', 'weapon', 'chip', 'processor', 'pilot', 'drill', 'implant'];
+
+            slots.forEach(slot => {
+                const select = document.getElementById(`equip-${slot}`);
+                const currentValue = game.equipment[slot] || '';
+                const tag = SLOT_LABELS[slot];
+
+                // Clear and rebuild options
+                const slotItems = game.inventory.filter(item => item.type === slot);
+                select.innerHTML = `<option value="">[${tag}] ${slotItems.length} items</option>`;
+
+                // Add items from inventory that match this slot
+                slotItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.name;
+                    option.textContent = `[${tag}] ${item.name}`;
+                    if (item.name === currentValue) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            });
+            updateEquipmentDescs();
+        }
+
+        // Update equipment description text under each dropdown
+        function updateEquipmentDescs() {
+            const slots = ['body', 'legs', 'arms', 'weapon', 'chip', 'processor', 'pilot', 'drill', 'implant'];
+            slots.forEach(slot => {
+                const descEl = document.getElementById(`equip-desc-${slot}`);
+                const itemName = game.equipment[slot];
+                if (itemName) {
+                    const item = ITEMS.find(i => i.name === itemName);
+                    if (item && item.desc) {
+                        const img = item.image ? `<img src="${item.image}" alt="${item.name}">` : '';
+                        descEl.innerHTML = `<div class="storage-desc-content">${img}<span>${item.desc}</span></div>`;
+                        descEl.classList.add('visible');
+                    } else {
+                        descEl.innerHTML = '';
+                        descEl.classList.remove('visible');
+                    }
+                } else {
+                    descEl.innerHTML = '';
+                    descEl.classList.remove('visible');
+                }
+            });
+        }
+
+        // Handle equipment change
+        function onEquipmentChange(slot, itemName) {
+            if (game.inBattle) return; // Can't change during battle
+
+            game.equipment[slot] = itemName || null;
+            recalculateStats();
+            updateEquipmentDescs();
+            startRegen();
+            saveGame();
+        }
+
+        // Lock/unlock equipment dropdowns
+        function setEquipmentLocked(locked) {
+            const slots = ['body', 'legs', 'arms', 'weapon', 'chip', 'processor', 'pilot', 'drill', 'implant'];
+            slots.forEach(slot => {
+                document.getElementById(`equip-${slot}`).disabled = locked;
+            });
+            document.getElementById('location-select').disabled = locked;
+        }
+
+        // Add item to inventory
+        function addItemToInventory(item) {
+            game.inventory.push(item);
+            updateEquipmentUI();
+            saveGame();
+        }
+
+        // Get random item drop from defeated enemy
+        function getRandomItemDrop(enemyName) {
+            // Filter items that can drop from this enemy
+            const droppableItems = ITEMS.filter(item => {
+                if (item.droppedBy.length === 0) return true; // Drops from any enemy
+                return item.droppedBy.includes(enemyName);
+            });
+
+            if (droppableItems.length === 0) return null;
+
+            // Calculate total drop rate
+            const totalRate = droppableItems.reduce((sum, item) => sum + item.dropRate, 0);
+
+            // Random selection
+            let roll = Math.random() * totalRate;
+            for (const item of droppableItems) {
+                roll -= item.dropRate;
+                if (roll <= 0) {
+                    return item;
+                }
+            }
+
+            return droppableItems[0];
+        }
+
+        // Level up check
+        function checkLevelUp() {
+            const p = game.player;
+            if (p.xp >= p.xpToLevel) {
+                p.xp -= p.xpToLevel;
+                p.level++;
+                p.xpToLevel = Math.floor(p.xpToLevel * 1.5);
+
+                // Increase BASE stats
+                p.baseMaxHp += 10;
+                p.baseAttack += 2;
+                p.baseSpeed += 3;
+                p.baseDefence += 1;
+                p.baseCombo = Math.min(p.baseCombo + 2, 50);
+                p.baseMining += 1;
+
+                // Recalculate with equipment
+                recalculateStats();
+
+                addMessage(`[LEVEL INCREASED TO ${p.level}]`, 'system');
+                addMessage(`Stats gained: [ATK+2] [SPD+3] [DEF+1] [COMBO+2%] [MAX HP+10] [MINING+1]`, 'system');
+                updateStats();
+                saveGame();
+
+                // Check for another level up
+                checkLevelUp();
+            }
+        }
+
+        // Select enemy type based on player level and appearance rates
+        function selectEnemyType() {
+            const playerLevel = game.player.level;
+
+            // Filter enemies by level requirement
+            const available = getEnemies().filter(e => e.minLevel <= playerLevel);
+
+            // Calculate total appearance rate
+            const totalRate = available.reduce((sum, e) => sum + e.appearanceRate, 0);
+
+            // Random selection weighted by appearance rate
+            let roll = Math.random() * totalRate;
+            for (const enemy of available) {
+                roll -= enemy.appearanceRate;
+                if (roll <= 0) {
+                    return enemy;
+                }
+            }
+
+            // Fallback to first available
+            return available[0];
+        }
+
+        // Generate enemy wave
+        function generateWave() {
+            const enemyType = selectEnemyType();
+            const min = enemyType.squadMin || 1;
+            const max = enemyType.squadMax || 1;
+            const enemyCount = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            return {
+                enemyType: enemyType,
+                count: enemyCount,
+                remaining: enemyCount,
+                currentTarget: 1, // Which enemy we're fighting (1-indexed)
+                currentEnemy: null, // Will hold current enemy's HP in battle
+                turn: 0
+            };
+        }
+
+        // Select encounter type based on player level and appearance rates
+        function selectEncounterType() {
+            const playerLevel = game.player.level;
+
+            // Filter encounters by level requirement
+            const available = getEncounters().filter(e => e.minLevel <= playerLevel);
+            if (available.length === 0) return null;
+
+            // Calculate total appearance rate
+            const totalRate = available.reduce((sum, e) => sum + e.appearanceRate, 0);
+
+            // Random selection weighted by appearance rate
+            let roll = Math.random() * totalRate;
+            for (const encounter of available) {
+                roll -= encounter.appearanceRate;
+                if (roll <= 0) {
+                    return encounter;
+                }
+            }
+
+            return available[0];
+        }
+
+        // Generate shop items based on encounter slot configuration
+        function generateShopItems(encounter) {
+            const items = [];
+            const slots = [encounter.itemSlot1, encounter.itemSlot2, encounter.itemSlot3];
+            const usedItems = new Set(); // Track used items to avoid duplicates
+
+            for (let i = 0; i < 3; i++) {
+                const slotConfig = slots[i] || [];
+                let item = null;
+
+                if (slotConfig.length > 0) {
+                    // Pick randomly from the configured item names
+                    const availableInSlot = slotConfig.filter(name => !usedItems.has(name));
+                    if (availableInSlot.length > 0) {
+                        const itemName = availableInSlot[Math.floor(Math.random() * availableInSlot.length)];
+                        item = ITEMS.find(i => i.name === itemName);
+                    }
+                } else {
+                    // Empty array = pick random from all items
+                    const availableItems = ITEMS.filter(i => !usedItems.has(i.name));
+                    if (availableItems.length > 0) {
+                        item = availableItems[Math.floor(Math.random() * availableItems.length)];
+                    }
+                }
+
+                if (item) {
+                    usedItems.add(item.name);
+                    items.push(item);
+                } else {
+                    items.push(null);
+                }
+            }
+
+            return items;
+        }
+
+        // Update shop UI with current items
+        function updateShopUI() {
+            const playerXP = game.player.xp;
+
+            for (let i = 0; i < 3; i++) {
+                const wrapper = document.getElementById(`shop-wrapper-${i + 1}`);
+                const nameEl = document.getElementById(`shop-name-${i + 1}`);
+                const descEl = document.getElementById(`shop-desc-${i + 1}`);
+                const buyBtn = document.getElementById(`shop-buy-${i + 1}`);
+                const item = shopItems[i];
+
+                if (item) {
+                    const canAfford = playerXP >= item.cost;
+                    const tag = SLOT_LABELS[item.type] || item.type.toUpperCase();
+                    nameEl.textContent = `[${tag}] ${item.name}`;
+                    const img = item.image ? `<img src="${item.image}" alt="${item.name}">` : '';
+                    descEl.innerHTML = item.desc ? `<div class="storage-desc-content">${img}<span>${item.desc}</span></div>` : '';
+                    nameEl.classList.toggle('cant-afford', !canAfford);
+                    buyBtn.textContent = `[Buy ${item.cost} XP]`;
+                    buyBtn.disabled = !canAfford;
+                    wrapper.classList.add('visible');
+                } else {
+                    wrapper.classList.remove('visible');
+                }
+            }
+        }
+
+        // Show shop panel (switch to store page)
+        function showShopPanel() {
+            storeAvailable = true;
+            updateShopUI();
+            showPage(6);
+        }
+
+        // Hide shop panel (leave store page)
+        function hideShopPanel() {
+            storeAvailable = false;
+            if (currentPage === 6) showPage(0);
+            updatePanelNav();
+        }
+
+        // Handle shop purchase
+        function purchaseItem(index) {
+            const item = shopItems[index];
+            if (!item || game.player.xp < item.cost) return;
+
+            game.player.xp -= item.cost;
+            addItemToInventory(item);
+            addMessage(`Purchased: ${item.name} for ${item.cost} XP`, 'victory');
+            updateStats();
+
+            // Remove item from shop
+            shopItems[index] = null;
+            updateShopUI();
+        }
+
+        // End shop encounter
+        function endShopEncounter() {
+            hideShopPanel();
+            if (game.shopLeaveBtn && game.shopLeaveBtn.parentNode) {
+                game.shopLeaveBtn.remove();
+                game.shopLeaveBtn = null;
+            }
+            currentEncounter = null;
+            shopItems = [];
+            addMessage(`Transaction complete. The trader departs.`, 'system');
+            startWaveTimer();
+        }
+
+        // Spawn encounter
+        function spawnEncounter() {
+            const encounter = selectEncounterType();
+            if (!encounter) return false;
+
+            currentEncounter = encounter;
+            shopItems = generateShopItems(encounter);
+
+            addMessage(`[ENCOUNTER] ${encounter.name}`, 'system');
+            addMessage(encounter.description, 'system');
+
+            // Create countdown message
+            let secondsLeft = Math.floor(game.WAVE_EXPIRE / 1000);
+            const countdownMsg = document.createElement('div');
+            countdownMsg.className = 'message system';
+            countdownMsg.textContent = `Signal available for [${secondsLeft}] seconds.`;
+            chatMessages.appendChild(countdownMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            game.countdownMsg = countdownMsg;
+
+            // Update countdown every second
+            game.countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft > 0) {
+                    countdownMsg.textContent = `Signal available for [${secondsLeft}] seconds.`;
+                } else {
+                    clearCountdown();
+                }
+            }, 1000);
+
+            showInlineButtons();
+
+            // Set expiration timer
+            if (game.waveExpireTimer) clearTimeout(game.waveExpireTimer);
+            game.waveExpireTimer = setTimeout(() => {
+                clearCountdown();
+                if (currentEncounter) {
+                    addMessage(`Signal lost. The ${encounter.name} has moved on.`, 'system');
+                    currentEncounter = null;
+                    shopItems = [];
+                    hideInlineButtons();
+                    startWaveTimer();
+                }
+            }, game.WAVE_EXPIRE);
+
+            return true;
+        }
+
+        // Engage encounter (shop)
+        async function engageEncounter() {
+            if (!currentEncounter) return;
+
+            // Clear expire timer and countdown
+            if (game.waveExpireTimer) {
+                clearTimeout(game.waveExpireTimer);
+                game.waveExpireTimer = null;
+            }
+            clearCountdown();
+
+            await addMessage(currentEncounter.engageText, 'system');
+            await addMessage(`Your XP: ${game.player.xp}`, 'system');
+
+            // Add inline leave button in chat
+            game.shopLeaveBtn = document.createElement('div');
+            game.shopLeaveBtn.className = 'action-btn-container';
+            const leaveBtn = document.createElement('button');
+            leaveBtn.className = 'action-btn engage';
+            leaveBtn.textContent = 'Leave';
+            leaveBtn.addEventListener('click', () => {
+                endShopEncounter();
+            });
+            game.shopLeaveBtn.appendChild(leaveBtn);
+            chatMessages.appendChild(game.shopLeaveBtn);
+            game.shopLeaveBtn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+            showShopPanel();
+        }
+
+        // Decline encounter
+        function declineEncounter() {
+            if (!currentEncounter) return;
+
+            // Clear expire timer and countdown
+            if (game.waveExpireTimer) {
+                clearTimeout(game.waveExpireTimer);
+                game.waveExpireTimer = null;
+            }
+            clearCountdown();
+
+            addMessage(`Encounter declined. Moving on.`, 'player');
+            currentEncounter = null;
+            shopItems = [];
+            startWaveTimer();
+        }
+
+        // Select a random asteroid appropriate for player's mining stat
+        function selectAsteroid() {
+            const locationAsteroids = LOCATIONS[currentLocation].mining;
+            if (!locationAsteroids || locationAsteroids.length === 0) return null;
+            return locationAsteroids[Math.floor(Math.random() * locationAsteroids.length)];
+        }
+
+        // Spawn mining event
+        function spawnMiningEvent() {
+            const asteroid = selectAsteroid();
+            if (!asteroid) return false;
+
+            currentMiningEvent = {
+                mineral: asteroid.mineral,
+                category: asteroid.category,
+                depth: asteroid.depth,
+                stabilityLoss: asteroid.stabilityLoss,
+                currentDepth: 0,
+                stability: asteroid.stability
+            };
+
+            addMessage(`[MINING EVENT] An asteroid with ${asteroid.mineral} deposits at ${asteroid.depth}ft has been detected.`, 'system');
+            addMessage(`Asteroid stability: ${asteroid.stability} | Your mining power: ${game.player.mining}`, 'system');
+
+            // Create countdown message
+            let secondsLeft = Math.floor(game.WAVE_EXPIRE / 1000);
+            const countdownMsg = document.createElement('div');
+            countdownMsg.className = 'message system';
+            countdownMsg.textContent = `Asteroid in range for [${secondsLeft}] seconds.`;
+            chatMessages.appendChild(countdownMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            game.countdownMsg = countdownMsg;
+
+            addMessage(`Do you want to attempt to mine it?`, 'system');
+
+            // Update countdown every second
+            game.countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft > 0) {
+                    countdownMsg.textContent = `Asteroid in range for [${secondsLeft}] seconds.`;
+                } else {
+                    clearCountdown();
+                }
+            }, 1000);
+
+            showInlineButtons();
+
+            // Set expiration timer
+            if (game.waveExpireTimer) clearTimeout(game.waveExpireTimer);
+            game.waveExpireTimer = setTimeout(() => {
+                clearCountdown();
+                if (currentMiningEvent) {
+                    addMessage(`Asteroid has drifted out of range.`, 'system');
+                    currentMiningEvent = null;
+                    hideInlineButtons();
+                    startWaveTimer();
+                }
+            }, game.WAVE_EXPIRE);
+
+            return true;
+        }
+
+        // Engage mining event
+        async function engageMining() {
+            if (!currentMiningEvent) return;
+
+            // Clear expire timer and countdown
+            if (game.waveExpireTimer) {
+                clearTimeout(game.waveExpireTimer);
+                game.waveExpireTimer = null;
+            }
+            clearCountdown();
+
+            game.inBattle = true;
+            setEquipmentLocked(true);
+
+            if (game.regenInterval) {
+                clearInterval(game.regenInterval);
+                game.regenInterval = null;
+            }
+
+            const mining = currentMiningEvent;
+            await addMessage(`Mining operation commencing on ${mining.mineral} asteroid...`, 'player');
+            await addMessage(`> > >  M I N I N G  S T A R T  < < <`, 'system');
+
+            // Mining loop
+            let turn = 0;
+            while (mining.stability > 0 && mining.currentDepth < mining.depth) {
+                turn++;
+                await addMessage(`- - - - - - - - - - - - - - - - - - - - -[ Turn ${turn} ]- - - - - - - - - - - - - - - - - - - - - `, 'system');
+
+                // Player mines deeper
+                mining.currentDepth = Math.min(mining.currentDepth + game.player.mining, mining.depth);
+                await addMessage(`Mech mines to ${mining.currentDepth} / ${mining.depth}ft`, 'player');
+
+                // Check if deposit reached
+                if (mining.currentDepth >= mining.depth) {
+                    await addMessage(`[EXTRACTION COMPLETE] ${mining.mineral} has been successfully extracted.`, 'victory');
+                    endMining(true);
+                    return;
+                }
+
+                // Asteroid loses stability
+                mining.stability = Math.max(0, mining.stability - mining.stabilityLoss);
+                await addMessage(`Asteroid stability at ${mining.stability}`, 'system');
+
+                // Check for collapse
+                if (mining.stability <= 0) {
+                    await addMessage(`[ASTEROID COLLAPSE] The asteroid has destabilised!`, 'enemy');
+
+                    // Collapse damage = current depth, reduced by defence
+                    const collapseDamage = mining.currentDepth;
+                    const p = game.player;
+                    let remainingDefence = p.defence;
+
+                    if (remainingDefence >= collapseDamage) {
+                        await addMessage(`Collapse impact: ${collapseDamage} damage. Defence absorbs all damage.`, 'player');
+                    } else if (remainingDefence > 0) {
+                        const damageTaken = collapseDamage - remainingDefence;
+                        await addMessage(`Collapse impact: ${collapseDamage} damage. Defence absorbs ${remainingDefence}, ${damageTaken} damage taken.`, 'player');
+                        p.hp = Math.max(0, p.hp - damageTaken);
+                        updateStats();
+                    } else {
+                        p.hp = Math.max(0, p.hp - collapseDamage);
+                        await addMessage(`Collapse impact: ${collapseDamage} damage taken.`, 'player');
+                        updateStats();
+                    }
+
+                    await addMessage(`Mining operation failed. No minerals recovered.`, 'system');
+
+                    if (p.hp <= 0) {
+                        game.deaths++;
+                        await addMessage(`Your mech has been confirmed destroyed.`, 'system');
+                        await addMessage(`Systems resetting.`, 'system');
+                        p.hp = Math.floor(p.maxHp / 2);
+                    }
+
+                    endMining(false);
+                    return;
+                }
+            }
+        }
+
+        // End mining event
+        function endMining(success) {
+            game.inBattle = false;
+            setEquipmentLocked(false);
+
+            if (success) {
+                // Add mineral to player's collection
+                addMineral(currentMiningEvent.mineral, currentMiningEvent.category);
+            }
+
+            currentMiningEvent = null;
+            updateStats();
+            saveGame();
+            startRegen();
+            startWaveTimer();
+        }
+
+        // Decline mining event
+        function declineMining() {
+            if (!currentMiningEvent) return;
+
+            // Clear expire timer and countdown
+            if (game.waveExpireTimer) {
+                clearTimeout(game.waveExpireTimer);
+                game.waveExpireTimer = null;
+            }
+            clearCountdown();
+
+            addMessage(`Mining operation declined. Asteroid ignored.`, 'player');
+            currentMiningEvent = null;
+            startWaveTimer();
+        }
+
+        // Add a mineral to the player's mining collection
+        function addMineral(mineralName, category) {
+            if (!game.minerals) game.minerals = {};
+            if (!game.minerals[category]) game.minerals[category] = [];
+            game.minerals[category].push(mineralName);
+            updateMiningUI();
+            saveGame();
+        }
+
+        // Add a story item to the player's storage
+        function addStoryItem(itemName) {
+            if (!game.storyItems) game.storyItems = [];
+            if (!game.storyItems.includes(itemName)) {
+                game.storyItems.push(itemName);
+                const item = STORY_ITEMS.find(i => i.name === itemName);
+                if (item) {
+                    addMessage(`[ITEM FOUND] ${item.name}`, 'reward');
+                }
+                updateStorageUI();
+                saveGame();
+            }
+        }
+
+        // Update mining page dropdowns to show collected minerals
+        function updateMiningUI() {
+            if (!game.minerals) return;
+            const MINING_LABELS = { common: 'COMMON', uncommon: 'UNCOMMON', scarce: 'SCARCE', valuable: 'VALUABLE', precious: 'PRECIOUS', exotic: 'EXOTIC', ultrarare: 'ULTRARARE' };
+            const categories = ['common', 'uncommon', 'scarce', 'valuable', 'precious', 'exotic', 'ultrarare'];
+            categories.forEach(cat => {
+                const select = document.getElementById(`mining-${cat}`);
+                if (!select) return;
+                const collected = (game.minerals[cat] || []);
+                const tag = MINING_LABELS[cat];
+                // Count unique minerals collected
+                const uniqueCount = new Set(collected.map(m => m.toLowerCase())).size;
+                select.options[0].textContent = `[${tag}] ${uniqueCount} items`;
+                // Count occurrences of each mineral
+                const counts = {};
+                collected.forEach(m => { counts[m.toLowerCase()] = (counts[m.toLowerCase()] || 0) + 1; });
+                // Enable/disable options and show count
+                for (let i = 1; i < select.options.length; i++) {
+                    const opt = select.options[i];
+                    const mineralValue = opt.value;
+                    const count = counts[mineralValue] || 0;
+                    // Get base mineral name from value (capitalize first letter)
+                    const baseName = mineralValue.charAt(0).toUpperCase() + mineralValue.slice(1);
+                    if (count > 0) {
+                        opt.disabled = false;
+                        opt.textContent = count > 1 ? `[${tag}] ${baseName} x${count}` : `[${tag}] ${baseName}`;
+                    } else {
+                        opt.disabled = true;
+                        opt.textContent = `[${tag}] ${baseName}`;
+                    }
+                }
+                // Enable dropdown if player has at least one mineral in this category
+                if (collected.length > 0) {
+                    select.disabled = false;
+                }
+            });
+        }
+
+        // Update storage UI dropdowns with collected story items
+        function updateStorageUI() {
+            const STORAGE_LABELS = { log: 'LOGS', key: 'KEYS', dna: 'DNA', debris: 'DEBRIS', scrap: 'SCRAP' };
+            const items = game.storyItems || [];
+            const cats = ['log', 'key', 'dna', 'debris', 'scrap'];
+            cats.forEach(cat => {
+                const select = document.getElementById(`storage-${cat}`);
+                const desc = document.getElementById(`storage-desc-${cat}`);
+                if (!select || !desc) return;
+                const tag = STORAGE_LABELS[cat];
+                const collected = items.map(name => STORY_ITEMS.find(i => i.name === name)).filter(i => i && i.category === cat);
+                select.innerHTML = `<option value="">[${tag}] ${collected.length} items</option>`;
+                collected.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.name;
+                    opt.textContent = `[${tag}] ${item.name}`;
+                    select.appendChild(opt);
+                });
+                select.disabled = collected.length === 0;
+                desc.textContent = '';
+            });
+        }
+
+        // Storage dropdown change listeners
+        ['log', 'key', 'dna', 'debris', 'scrap'].forEach(cat => {
+            document.getElementById(`storage-${cat}`).addEventListener('change', (e) => {
+                const desc = document.getElementById(`storage-desc-${cat}`);
+                const item = STORY_ITEMS.find(i => i.name === e.target.value);
+                if (item) {
+                    desc.innerHTML = `<div class="storage-desc-content"><img src="${item.image}" alt="${item.name}"><span>${item.desc}</span></div>`;
+                } else {
+                    desc.innerHTML = '';
+                }
+            });
+        });
+
+        // Show action buttons inline in chat (below countdown)
+        function showInlineButtons() {
+            btnEngage.disabled = false;
+            btnRetreat.disabled = false;
+            chatMessages.appendChild(btnContainer);
+            btnContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        // Hide action buttons from chat
+        function hideInlineButtons() {
+            btnEngage.disabled = true;
+            btnRetreat.disabled = true;
+            if (btnContainer.parentNode) {
+                btnContainer.remove();
+            }
+        }
+
+        function clearCountdown() {
+            if (game.countdownInterval) {
+                clearInterval(game.countdownInterval);
+                game.countdownInterval = null;
+            }
+            if (game.countdownMsg) {
+                game.countdownMsg.remove();
+                game.countdownMsg = null;
+            }
+            hideInlineButtons();
+        }
+
+        // Spawn new wave
+        // Select ambush enemy type based on player level and appearance rates
+        function selectAmbushType() {
+            const loc = LOCATIONS[currentLocation];
+            if (!loc.ambush || loc.ambush.length === 0) return null;
+            const playerLevel = game.player.level;
+            const available = loc.ambush.filter(e => e.minLevel <= playerLevel);
+            if (available.length === 0) return null;
+            const totalRate = available.reduce((sum, e) => sum + e.appearanceRate, 0);
+            let roll = Math.random() * totalRate;
+            for (const enemy of available) {
+                roll -= enemy.appearanceRate;
+                if (roll <= 0) return enemy;
+            }
+            return available[0];
+        }
+
+        // Spawn an ambush event
+        function spawnAmbush() {
+            const ambushEnemy = selectAmbushType();
+            if (!ambushEnemy) return false;
+
+            const min = ambushEnemy.squadMin || 1;
+            const max = ambushEnemy.squadMax || 1;
+            const enemyCount = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            game.currentWave = {
+                enemyType: ambushEnemy,
+                count: enemyCount,
+                remaining: enemyCount,
+                currentTarget: 1,
+                currentEnemy: null,
+                turn: 0
+            };
+            game.isAmbush = true;
+
+            addMessage(`[AMBUSH] A squad of ${enemyCount} ${ambushEnemy.name}s has locked onto your location [ATK:${ambushEnemy.attack} DEF:${ambushEnemy.defence} HP:${ambushEnemy.hp}]`, 'enemy');
+
+            // Create countdown message
+            let secondsLeft = Math.floor(game.WAVE_EXPIRE / 1000);
+            const countdownMsg = document.createElement('div');
+            countdownMsg.className = 'message system';
+            countdownMsg.textContent = `Contact in [${secondsLeft}] seconds.`;
+            chatMessages.appendChild(countdownMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            game.countdownMsg = countdownMsg;
+
+            addMessage(`Hostile signatures closing fast...`, 'player');
+
+            // Update countdown every second
+            game.countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft > 0) {
+                    countdownMsg.textContent = `Contact in [${secondsLeft}] seconds.`;
+                } else {
+                    clearCountdown();
+                }
+            }, 1000);
+
+            // Set button text for ambush
+            btnRetreat.textContent = 'Evade';
+            showInlineButtons();
+
+            // Ambush expires - if player doesn't act, fight starts automatically
+            if (game.waveExpireTimer) clearTimeout(game.waveExpireTimer);
+            game.waveExpireTimer = setTimeout(() => {
+                clearCountdown();
+                if (game.currentWave && !game.inBattle) {
+                    addMessage(`[CONTACT] No time left — they're on you!`, 'enemy');
+                    hideInlineButtons();
+                    btnRetreat.textContent = 'Decline';
+                    engageBattle();
+                }
+            }, game.WAVE_EXPIRE);
+
+            return true;
+        }
+
+        // Evade an ambush using speed stat (same calculation as speedbreaker)
+        function evadeAmbush() {
+            if (!game.currentWave || game.inBattle) return;
+
+            // Clear expire timer and countdown
+            if (game.waveExpireTimer) {
+                clearTimeout(game.waveExpireTimer);
+                game.waveExpireTimer = null;
+            }
+            clearCountdown();
+
+            const p = game.player;
+            const evadeRoll = Math.random() * 100 < p.speed;
+
+            if (evadeRoll) {
+                addMessage(`[EVADE SUCCESSFUL] Speedbreaker engaged — you slipped their sensors!`, 'player');
+                game.currentWave = null;
+                game.isAmbush = false;
+                btnRetreat.textContent = 'Decline';
+                startWaveTimer();
+            } else {
+                addMessage(`[EVADE FAILED] They've cut off your escape — combat is unavoidable!`, 'enemy');
+                btnRetreat.textContent = 'Decline';
+                engageBattle();
+            }
+        }
+
+        function spawnWave() {
+            if (game.inBattle || game.currentWave || currentEncounter || currentMiningEvent) return;
+
+            const loc = LOCATIONS[currentLocation];
+
+            // Mining-only locations: only spawn mining events
+            if (!loc.enemies && !loc.encounters) {
+                if (game.player.mining > 0) {
+                    spawnMiningEvent();
+                } else {
+                    addMessage(`[NO DRILL EQUIPPED] Mining drill required to operate in this zone.`, 'system');
+                }
+                return;
+            }
+
+            // Encounter-only locations: always spawn encounters
+            if (!loc.enemies && loc.encounters) {
+                spawnEncounter();
+                return;
+            }
+
+            // Check for encounter chance
+            if (Math.random() * 100 < game.ENCOUNTER_CHANCE) {
+                if (spawnEncounter()) return;
+            }
+
+            // Check for ambush chance
+            if (loc.ambush && Math.random() * 100 < AMBUSH_CHANCE) {
+                if (spawnAmbush()) return;
+            }
+
+            // Check for mining event chance (only if player has mining stat > 0)
+            if (game.player.mining > 0 && Math.random() * 100 < MINING_CHANCE) {
+                if (spawnMiningEvent()) return;
+            }
+
+            game.currentWave = generateWave();
+            const et = game.currentWave.enemyType;
+            addMessage(`[TARGET ACQUIRED]> ${game.currentWave.count} ${et.name}s are within engagement range [ATK:${et.attack} DEF:${et.defence} HP:${et.hp}]`, 'enemy');
+
+            // Create countdown message
+            let secondsLeft = Math.floor(game.WAVE_EXPIRE / 1000);
+            const countdownMsg = document.createElement('div');
+            countdownMsg.className = 'message system';
+            countdownMsg.textContent = `Enemy location locked [${secondsLeft}] seconds until EMP signal jam.`;
+            chatMessages.appendChild(countdownMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            game.countdownMsg = countdownMsg;
+
+            addMessage(`Mech awaiting orders...`, 'player');
+
+            // Update countdown every second
+            game.countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft > 0) {
+                    countdownMsg.textContent = `Enemy signal locked. [${secondsLeft}] seconds until signal loss.`;
+                } else {
+                    clearCountdown();
+                }
+            }, 1000);
+
+            showInlineButtons();
+
+            // Set expiration timer
+            if (game.waveExpireTimer) clearTimeout(game.waveExpireTimer);
+            game.waveExpireTimer = setTimeout(() => {
+                clearCountdown();
+                if (game.currentWave && !game.inBattle) {
+                    addMessage(`Signal lost. Scanning...`, 'system');
+                    game.currentWave = null;
+                    hideInlineButtons();
+                }
+            }, game.WAVE_EXPIRE);
+        }
+
+        // Start wave timer
+        function startWaveTimer() {
+            game.nextWaveTime = Date.now() + game.WAVE_INTERVAL;
+
+            if (game.waveTimer) clearInterval(game.waveTimer);
+
+            game.waveTimer = setInterval(() => {
+                const remaining = Math.max(0, game.nextWaveTime - Date.now());
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+                timerDisplay.textContent = `Next wave in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                if (remaining <= 0) {
+                    spawnWave();
+                    startWaveTimer();
+                }
+            }, 1000);
+        }
+
+        // Player attack helper - calculates damage vs enemy defence
+        function calculateDamage(attackStat, defenceStat) {
+            const damage = Math.max(1, attackStat - defenceStat);
+            return damage;
+        }
+
+        // Battle round - player attacks, then all enemies attack in sequence
+        async function battleRound() {
+            const p = game.player;
+            const wave = game.currentWave;
+            const et = wave.enemyType;
+
+            if (!wave || wave.remaining <= 0 || p.hp <= 0) {
+                endBattle();
+                return;
+            }
+
+            // Spawn new enemy if needed
+            if (wave.currentEnemy === null) {
+                wave.currentEnemy = et.hp;
+            }
+
+            wave.turn++;
+            await addMessage(`- - - - - - - - - - - - - - - - - - - - -[ Turn ${wave.turn} ]- - - - - - - - - - - - - - - - - - - - - `, 'system');
+
+            // Determine attacks this turn
+            let speedTriggered = Math.random() * 100 < p.speed;
+            let comboTriggered = Math.random() * 100 < p.combo;
+            let attackCount = speedTriggered ? 2 : 1;
+
+            if (speedTriggered) {
+                await addMessage(`[SPEEDBREAKER TRIGGERED]`, 'player');
+            }
+            if (comboTriggered) {
+                await addMessage(`[COMBOBREAKER TRIGGERED]`, 'player');
+            }
+
+            // Calculate damage (combo applies to all attacks this turn)
+            let playerDamage = calculateDamage(p.attack, et.defence);
+            if (comboTriggered) {
+                playerDamage *= 2;
+            }
+
+            // Perform attacks
+            for (let atk = 1; atk <= attackCount; atk++) {
+                // If current enemy is dead, target next one
+                if (wave.currentEnemy === null) {
+                    if (wave.remaining <= 0) {
+                        endBattle(true);
+                        return;
+                    }
+                    wave.currentEnemy = et.hp;
+                }
+
+                wave.currentEnemy -= playerDamage;
+                await addMessage(`Mech attacks ${et.name} #${wave.currentTarget} for ${playerDamage} damage.`, 'player');
+
+                // Check if current enemy 
+                if (wave.currentEnemy <= 0) {
+                    wave.remaining--;
+                    const xpBonus = getXpBonus();
+                    const killXp = et.xp + xpBonus;
+                    wave.xpEarned = (wave.xpEarned || 0) + killXp;
+                    const bonusText = xpBonus > 0 ? ` (+${xpBonus} PROC)` : '';
+                    await addMessage(`[KILL CONFIRMED] ${et.name} #${wave.currentTarget} destroyed (+${killXp} XP${bonusText})`, 'enemy');
+                    wave.currentTarget++;
+                    wave.currentEnemy = null;
+
+                    if (wave.remaining <= 0) {
+                        endBattle(true);
+                        return;
+                    }
+                } else {
+                    await addMessage(`${et.name} #${wave.currentTarget} reduced to ${wave.currentEnemy} HP`, 'enemy');
+                }
+            }
+
+            // All remaining enemies attack in sequence
+            let remainingDefence = p.defence; // Defence pool for this turn
+
+            for (let i = wave.currentTarget; i <= wave.count; i++) {
+                await addMessage(`${et.name} #${i} attacks Mech for ${et.attack} damage.`, 'enemy');
+
+                if (remainingDefence >= et.attack) {
+                    // Fully blocked
+                    remainingDefence -= et.attack;
+                    await addMessage(` [Damage blocked] (${remainingDefence} defence remaining)`, 'player');
+                } else if (remainingDefence > 0) {
+                    // Partially blocked
+                    const damageTaken = et.attack - remainingDefence;
+                    await addMessage(`Remaining defence absorbs ${remainingDefence} damage, but ${damageTaken} damage is still taken.`, 'player');
+                    remainingDefence = 0;
+                    p.hp = Math.max(0, p.hp - damageTaken);
+                    updateStats();
+                } else {
+                    // No defence left
+                    p.hp = Math.max(0, p.hp - et.attack);
+                    await addMessage(`Mech takes ${et.attack} damage.`, 'player');
+                    updateStats();
+                }
+
+                // Check if player defeated
+                if (p.hp <= 0) {
+                    endBattle(false);
+                    return;
+                }
+            }
+        }
+
+        // End battle
+        function endBattle(victory = false) {
+            game.inBattle = false;
+            setEquipmentLocked(false); // Unlock equipment
+
+            if (game.battleInterval) {
+                clearInterval(game.battleInterval);
+                game.battleInterval = null;
+            }
+
+            const wave = game.currentWave;
+            const enemiesKilled = wave ? wave.count - wave.remaining : 0;
+            const xpEarned = wave ? (wave.xpEarned || 0) : 0;
+            const enemyType = wave ? wave.enemyType.name : null;
+
+            if (victory) {
+                addMessage(`[ All hostiles confirmed destroyed ]`, 'system');
+                game.player.xp += xpEarned;
+                addMessage(`Mech gained ${xpEarned} XP.`, 'system');
+
+                // Drop random item
+                if (enemyType) {
+                    const droppedItem = getRandomItemDrop(enemyType);
+                    if (droppedItem) {
+                        addItemToInventory(droppedItem);
+                        addMessage(`Mech found item: ${droppedItem.name} [${ITEM_TYPES[droppedItem.type]}]`, 'victory');
+                    }
+                }
+
+                checkLevelUp();
+            } else {
+                game.deaths++;
+                addMessage(`Your mech has been confirmed destroyed.`, 'system');
+                addMessage(`Systems resetting.`, 'system');
+                // Respawn with half HP
+                game.player.hp = Math.floor(game.player.maxHp / 2);
+            }
+
+            game.currentWave = null;
+            game.isAmbush = false;
+            btnRetreat.textContent = 'Decline';
+            updateStats();
+            startRegen();
+            startWaveTimer();
+        }
+
+        // Start HP regeneration (1 regen = 1 HP per second)
+        function startRegen() {
+            if (game.regenInterval) clearInterval(game.regenInterval);
+            if (game.player.regen <= 0) return;
+
+            game.regenInterval = setInterval(() => {
+                if (game.inBattle) return;
+
+                if (game.player.hp < game.player.maxHp) {
+                    game.player.hp = Math.min(game.player.maxHp, game.player.hp + game.player.regen);
+                    updateStats();
+                } else {
+                    clearInterval(game.regenInterval);
+                    game.regenInterval = null;
+                }
+            }, 1000);
+        }
+
+        // Utility delay
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Engage battle
+        async function engageBattle() {
+            if (!game.currentWave || game.inBattle) return;
+
+            // Clear expire timer and countdown
+            if (game.waveExpireTimer) {
+                clearTimeout(game.waveExpireTimer);
+                game.waveExpireTimer = null;
+            }
+            clearCountdown();
+
+            game.inBattle = true;
+            setEquipmentLocked(true); // Lock equipment during battle
+
+            if (game.regenInterval) {
+                clearInterval(game.regenInterval);
+                game.regenInterval = null;
+            }
+
+            const et = game.currentWave.enemyType;
+            await addMessage(`Engagement confirmed for ${game.currentWave.count} ${et.name}s!`, 'player');
+            await addMessage(`> > >  C O M B A T  S T A R T  < < <`, 'system');
+
+            // Battle loop
+            async function runBattle() {
+                while (game.inBattle && game.currentWave && game.currentWave.remaining > 0 && game.player.hp > 0) {
+                    await battleRound();
+                }
+            }
+
+            runBattle();
+        }
+
+        // Decline battle
+        function declineBattle() {
+            if (!game.currentWave || game.inBattle) return;
+
+            // Clear expire timer and countdown
+            if (game.waveExpireTimer) {
+                clearTimeout(game.waveExpireTimer);
+                game.waveExpireTimer = null;
+            }
+            clearCountdown();
+
+            addMessage(`Engagement denied. Live to fight another day.`, 'player');
+            game.currentWave = null;
+        }
+
+        // Event listeners
+        btnEngage.addEventListener('click', () => {
+            if (currentMiningEvent) {
+                engageMining();
+            } else if (currentEncounter) {
+                engageEncounter();
+            } else {
+                engageBattle();
+            }
+        });
+        btnRetreat.addEventListener('click', () => {
+            if (currentMiningEvent) {
+                declineMining();
+            } else if (currentEncounter) {
+                declineEncounter();
+            } else if (game.isAmbush) {
+                evadeAmbush();
+            } else {
+                declineBattle();
+            }
+        });
+
+        // Options modal event listeners
+        document.getElementById('btn-options').addEventListener('click', () => {
+            refreshSlotDisplays();
+            document.getElementById('save-modal').classList.add('visible');
+        });
+        document.getElementById('modal-close').addEventListener('click', () => {
+            document.getElementById('save-modal').classList.remove('visible');
+        });
+        document.getElementById('save-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                document.getElementById('save-modal').classList.remove('visible');
+            }
+        });
+
+        // Shop button event listeners
+        document.getElementById('shop-buy-1').addEventListener('click', () => purchaseItem(0));
+        document.getElementById('shop-buy-2').addEventListener('click', () => purchaseItem(1));
+        document.getElementById('shop-buy-3').addEventListener('click', () => purchaseItem(2));
+
+        // Initialize game
+        function init() {
+            // Set up equipment dropdown event listeners
+            const slots = ['body', 'legs', 'arms', 'weapon', 'chip', 'processor', 'pilot', 'drill', 'implant'];
+            slots.forEach(slot => {
+                document.getElementById(`equip-${slot}`).addEventListener('change', (e) => {
+                    onEquipmentChange(slot, e.target.value);
+                });
+            });
+
+            // Load saved game if exists
+            const saveLoaded = loadGame();
+            if (saveLoaded) {
+                // Recalculate stats with loaded equipment
+                recalculateStats();
+                // Set HP to max on load (fresh session)
+                game.player.hp = game.player.maxHp;
+            }
+
+            updateEquipmentUI();
+            updateMiningUI();
+            updateStorageUI();
+
+            addMessage(`============================================`, 'system');
+            addMessage(`=== C O M B O B R E A K E R  O N L I N E ===`, 'system');
+            addMessage(`============================================`, 'system');
+
+            if (saveLoaded) {
+                addMessage(`[SAVE DATA LOADED] Welcome back, Pilot 72632`, 'system');
+                addMessage(`Level ${game.player.level} | XP: ${game.player.xp}/${game.player.xpToLevel} | ${game.inventory.length} items in inventory`, 'system');
+            } else {
+                addMessage(`Remote mech is ready for combat [Pilot 72632]`, 'system');
+            }
+
+            addMessage(``, 'system');
+            addMessage(`[] Engagement Protocols Approved [Autopilot Deactivated] `, 'system');
+            addMessage(`[K E Y //::X2Y***_***_***_***_***_LZ7`, 'system');
+            addMessage(`BreakerPilot Command Key Accepted.`, 'system');
+            addMessage(`Engagement commands now available. [Engage] or [Decline]`, 'system');
+            updateStats();
+
+            // Spawn first wave immediately for testing
+            setTimeout(() => {
+                spawnWave();
+                startWaveTimer();
+            }, 2000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
